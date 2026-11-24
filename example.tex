@@ -1,0 +1,173 @@
+% Example of the MVP Lab technical report template (mvplab.sty).
+% Compile with pdfLaTeX:  latexmk -pdf example.tex
+% (or: pdflatex example && bibtex example && pdflatex example && pdflatex example)
+\documentclass[10pt,letterpaper]{article}
+\usepackage{mvplab}
+
+% Optional: packages of your own go here; mvplab.sty loads hyperref and cleveref at the end of the preamble.
+\usepackage{multirow}
+
+% ---------------------------------------------------------------------------------------------------------------
+% Title data
+\title{An Example Technical Report Typeset with the MVP Lab Template}
+\shorttitle{An Example Technical Report with the MVP Lab Template} % running header (optional)
+% \projectlead marks the project leader (blue dagger), \corresponding the corresponding author (pink envelope).
+% Write names with ~ so that a line break never splits a name.
+\author{First~Author\projectlead \and Second~Author \and Third~Author \and Fourth~Author\corresponding}
+\affiliation{MVP Lab \& Imperial College London}
+% Several affiliations: put \affilmark{1}, \affilmark{2}, ... after the names and before each affiliation:
+%   \author{First~Author\affilmark{1}\projectlead \and Second~Author\affilmark{2}}
+%   \affiliation{\affilmark{1}MVP Lab, Imperial College London\qquad\affilmark{2}Another Institution}
+\mvpdate{\today}
+% Every link line is optional; leave a command out to drop its line.
+\projecturl{https://mvp-ai-lab.github.io/your-project}
+\githuburl{https://github.com/mvp-ai-lab/your-project}
+\huggingfaceurl{https://huggingface.co/datasets/mvp-lab/your-dataset}
+\projectleader{First Author}{first.author@example.com}
+\correspondence{Fourth Author}{fourth.author@example.com}
+
+\begin{document}
+
+% The abstract comes before \maketitle: it is typeset inside the title box, above the date and the links.
+\begin{abstract}
+This document shows the MVP Lab template for technical reports and arXiv papers. The first page carries the lab
+logo, the title, the authors with the project leader and the corresponding author marked, and the abstract in a box
+together with the date, the project page, the code and data repositories, and the contact addresses. Every later
+page has the title as running header. Citations are numbered~\cite{dust3r,vggt}, and citations as well as references
+to sections, figures, tables, and equations are colored in the accent pink of the lab's webpages (\cref{sec:usage}).
+The remaining sections show headings, a figure, a table, equations, lists, boxes, and an appendix.
+\end{abstract}
+\maketitle
+
+% ---------------------------------------------------------------------------------------------------------------
+\section{Introduction}
+\label{sec:intro}
+The template is a single \texttt{.sty} file for the standard \texttt{article} class. It sets a single-column letter
+page with one-inch margins, Latin Modern for the text and Inter for headings, captions, and the title page, and the
+colors of the MVP Lab webpages: primary blue, indigo, and accent pink. Links to web pages are blue, \eg
+\url{https://github.com/mvp-ai-lab}, and internal references are pink, \eg \cref{fig:example,tab:example} and
+\cref{eq:loss}.
+
+Recent geometric foundation models predict depth and camera poses from images in a single forward
+pass~\cite{dust3r,vggt}, while monocular depth models predict depth from one image~\cite{midas,depthanything,marigold}.
+We use them only as example citations; the bibliography style is numbered and sorted, and consecutive numbers are
+compressed into ranges~\cite{midas,depthanything,marigold,dust3r,vggt}.
+
+\paragraph{Contributions.} A run-in paragraph heading is set in bold in the ink color:
+\begin{itemize}
+  \item a title page with logo, author roles, links, and a boxed abstract;
+  \item headings, captions, and links in the colors of the lab's webpages;
+  \item a running header with the title on every page after the first, and an appendix on a new page.
+\end{itemize}
+
+% ---------------------------------------------------------------------------------------------------------------
+\section{Using the Template}
+\label{sec:usage}
+
+\subsection{Title Page}
+\label{sec:usage:title}
+The title data are set in the preamble (see the top of \texttt{example.tex}): \verb|\title|, an optional
+\verb|\shorttitle| for the running header, \verb|\author| with \verb|\and| between names, \verb|\affiliation|, and the
+optional \verb|\projecturl|, \verb|\githuburl|, \verb|\huggingfaceurl|, \verb|\projectleader|, \verb|\correspondence|,
+and \verb|\mvpdate|. The abstract environment comes before \verb|\maketitle|.
+
+\subsection{Figures and Tables}
+\label{sec:usage:floats}
+Figures and tables use the standard environments; captions get a blue label, and table captions go above the table.
+\Cref{fig:example} is drawn with TikZ in the template colors, and \cref{tab:example} uses \texttt{booktabs}.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[x=1.15cm,y=0.045cm]
+  \draw[mvpmuted!60] (0,0) -- (8.6,0);
+  \foreach \y in {0,25,50,75,100} {
+    \draw[mvpbg2] (0,\y) -- (8.6,\y);
+    \node[left,font=\sffamily\scriptsize,text=mvpmuted] at (0,\y) {\y};
+  }
+  \foreach \x/\a/\b/\name in {1/42/58/Task A,3/55/71/Task B,5/63/80/Task C,7/48/77/Task D} {
+    \fill[mvpblue] (\x-0.38,0) rectangle (\x,\a);
+    \fill[mvppink] (\x,0) rectangle (\x+0.38,\b);
+    \node[below,font=\sffamily\scriptsize,text=mvpink] at (\x,0) {\name};
+  }
+  \node[rotate=90,font=\sffamily\scriptsize,text=mvpmuted] at (-0.75,50) {Score};
+  \fill[mvpblue] (5.9,104) rectangle (6.1,110); \node[right,font=\sffamily\scriptsize] at (6.1,107) {Baseline};
+  \fill[mvppink] (7.2,104) rectangle (7.4,110); \node[right,font=\sffamily\scriptsize] at (7.4,107) {Ours};
+\end{tikzpicture}
+\caption{\textbf{An example figure.} Scores of a baseline and of our method on four tasks (made-up numbers).}
+\label{fig:example}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{\textbf{An example table.} Lower is better for AbsRel, higher for $\delta_{1.25}$; the best result of each
+column is in bold (made-up numbers).}
+\label{tab:example}
+\small
+\begin{tabular}{@{}llcccc@{}}
+\toprule
+& & \multicolumn{2}{c}{Indoor} & \multicolumn{2}{c}{Outdoor} \\
+\cmidrule(lr){3-4}\cmidrule(l){5-6}
+Method & Type & AbsRel $\downarrow$ & $\delta_{1.25}$ $\uparrow$ & AbsRel $\downarrow$ & $\delta_{1.25}$ $\uparrow$ \\
+\midrule
+\multirow{2}{*}{Baselines} & Monocular & 0.081 & 93.2 & 0.102 & 89.5 \\
+ & Multi-view & 0.074 & 94.1 & 0.095 & 90.8 \\
+\midrule
+Ours & Multi-view & \textbf{0.062} & \textbf{95.7} & \textbf{0.083} & \textbf{92.6} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Equations}
+\label{sec:usage:eq}
+Equations are centered and numbered on the right. A single equation:
+\begin{equation}
+  \mathcal{L}(\theta) = \frac{1}{N}\sum_{i=1}^{N} \rho_\delta\!\left(\frac{a\,\hat{x}_i(\theta)+b-x_i}{m}\right),
+  \label{eq:loss}
+\end{equation}
+and several equations aligned at the equals sign:
+\begin{align}
+  \mathrm{AbsRel} &= \frac{1}{|\Omega|}\sum_{p\in\Omega}\frac{|\tilde{D}(p)-D(p)|}{D(p)}, \label{eq:absrel}\\
+  \delta_{\tau} &= \frac{1}{|\Omega|}\sum_{p\in\Omega}\mathbb{1}\!\left[\max\!\left(\frac{\tilde{D}(p)}{D(p)},
+    \frac{D(p)}{\tilde{D}(p)}\right)<\tau\right]. \label{eq:delta}
+\end{align}
+
+\subsection{Boxes}
+\label{sec:usage:boxes}
+The template defines a rounded box, \verb|mvpbox|, which takes any \texttt{tcolorbox} option, for example a title:
+\begin{mvpbox}[title=Key finding]
+Boxes highlight a finding, a definition, or a summary. Their border, background, and title follow the template
+colors.
+\end{mvpbox}
+The \verb|mvpprompt| variant sets its text in small typewriter type, for prompts and listings (\cref{sec:appx:prompt}).
+
+% ---------------------------------------------------------------------------------------------------------------
+\section{Conclusion}
+\label{sec:conclusion}
+To start a report, copy \texttt{mvplab.sty} and the \texttt{template/} folder (the logos) next to your main
+file. Then load the package after \verb|\documentclass{article}| and fill in the title data as in this example.
+
+{
+  \small
+  \bibliographystyle{plainnat}
+  \bibliography{example}
+}
+
+% ---------------------------------------------------------------------------------------------------------------
+% Appendix: a new page with its own heading and no running header; sections are lettered.
+\appendixpage
+\appendix
+
+\section{Prompt Box}
+\label{sec:appx:prompt}
+A prompt in the \verb|mvpprompt| box:
+\begin{mvpprompt}
+The image shows an indoor scene. Estimate the metric depth of each numbered point, in meters, and return a single
+JSON object mapping each point number (as a string) to its depth, wrapped in <answer> </answer> tags.
+\end{mvpprompt}
+
+\section{Further Results}
+\label{sec:appx:results}
+Appendix sections are lettered (\cref{sec:appx:prompt,sec:appx:results}), and figures, tables, and equations continue
+the numbering of the main text.
+
+\end{document}

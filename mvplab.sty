@@ -1,0 +1,270 @@
+% mvplab.sty -- LaTeX template of MVP Lab technical reports and arXiv papers.
+%
+% Single-column letter-size layout in the style of recent industry-lab reports: a logo row, a large sans-serif
+% title, authors with project-leader and corresponding-author marks, the abstract in a rounded box together with
+% the date, links (GitHub, Hugging Face, project page), and correspondence, the title as running header on every
+% later page, numbered citations, and section headings in the colors of the SpatialArena webpage
+% (https://mvp-ai-lab.github.io/SpatialArena: primary #4361ee, secondary #3f37c9, accent #f72585, ink #1f2430).
+%
+% Usage (see example.tex and README.md; compile with pdfLaTeX):
+%   \documentclass[10pt,letterpaper]{article}
+%   \usepackage{mvplab}
+%   \title{...}            \shorttitle{...}          % running header; defaults to the title
+%   \author{Name\projectlead \and Name \and Name\corresponding}
+%   \affiliation{MVP Lab \& Imperial College London}
+%   (several affiliations: Name\affilmark{1} ... and \affiliation{\affilmark{1}MVP Lab \quad \affilmark{2}...})
+%   \githuburl{https://github.com/...}   \huggingfaceurl{https://huggingface.co/...}   \projecturl{https://...}
+%   \projectleader{Name}{email}          \correspondence{Name}{email}         \mvpdate{November 23, 2026}
+%   \begin{document}
+%   \begin{abstract} ... \end{abstract}  % before \maketitle; it is typeset inside the title box
+%   \maketitle ...
+%   \appendixpage \appendix ...          % appendix on a new page, lettered sections
+%
+% Required files: <\mvpassetdir>mvplab_logo.png and <\mvpassetdir>huggingface_logo.pdf; \mvpassetdir is template/
+% unless redefined before \begin{document}, e.g. \renewcommand{\mvpassetdir}{mvplab/template/}.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{mvplab}[2026/11/24 MVP Lab report template]
+
+% ---------------------------------------------------------------------------------------------------------------
+% Page layout and fonts
+\RequirePackage[letterpaper,top=1in,bottom=1in,left=1in,right=1in,headheight=18pt,headsep=16pt,footskip=28pt]{geometry}
+\RequirePackage[T1]{fontenc}
+\RequirePackage{lmodern}               % body text: Latin Modern
+\edef\mvp@rmfamily{\rmdefault}
+\RequirePackage[type1,scale=0.92]{inter} % headings, title, captions: Inter, the typeface of the SpatialArena webpage
+% inter also replaces the roman family; restore Latin Modern for the body text.
+\edef\rmdefault{\mvp@rmfamily}\renewcommand{\familydefault}{\rmdefault}
+\RequirePackage{microtype}
+\RequirePackage{xspace}
+\RequirePackage[dvipsnames,table]{xcolor}
+\RequirePackage{graphicx}
+\RequirePackage{amsmath,amssymb}
+\RequirePackage{booktabs}
+\RequirePackage{etoolbox}
+\RequirePackage{environ}
+\RequirePackage{tikz}
+\RequirePackage[skins]{tcolorbox}
+\RequirePackage{fancyhdr}
+\RequirePackage{titlesec}
+\RequirePackage{fontawesome5}
+\RequirePackage[hyphens]{url}
+\RequirePackage[numbers,sort&compress]{natbib} % numbered citations: [1, 3--5]
+\setlength{\bibsep}{2pt plus 1pt minus 1pt}
+\RequirePackage[shortlabels,inline]{enumitem}
+\setlist[itemize]{noitemsep,leftmargin=*,topsep=2pt}
+\setlist[enumerate]{noitemsep,leftmargin=*,topsep=2pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt plus 1pt}
+\linespread{1.04}
+
+% ---------------------------------------------------------------------------------------------------------------
+% Colors of the SpatialArena webpage
+\definecolor{mvpblue}{HTML}{4361EE}   % --primary
+\definecolor{mvpindigo}{HTML}{3F37C9} % --secondary
+\definecolor{mvppink}{HTML}{F72585}   % --accent
+\definecolor{mvpink}{HTML}{1F2430}    % --home-ink
+\definecolor{mvpmuted}{HTML}{5B6475}  % --home-muted
+\definecolor{mvpbg}{HTML}{F5F7FA}     % --bg-gradient-start
+\definecolor{mvpbg2}{HTML}{E9ECF5}    % --bg-gradient-end
+
+% Horizontal gradient bar in the colors of the webpage title (primary -> secondary -> accent).
+\newcommand{\mvp@gradientbar}[2]{% width, height
+  \begin{tikzpicture}[baseline=0pt]
+    \shade[left color=mvpblue,right color=mvpindigo] (0,0) rectangle (0.55*#1,#2);
+    \shade[left color=mvpindigo,right color=mvppink] (0.55*#1-0.01pt,0) rectangle (#1,#2);
+  \end{tikzpicture}}
+
+% Text filled with a continuous horizontal gradient, as the webpage title (primary -> secondary -> accent). The glyph
+% outlines become the clipping path (PDF text rendering mode 7), and a vector shading is drawn through them, so the
+% text stays sharp at any zoom. Example: \mvpgradienttext{MVP Lab}.
+\RequirePackage{pdfrender}
+\newcommand{\mvpgradienttext}[1]{%
+  \begingroup
+  \sbox0{#1}%
+  \leavevmode\pdfsave
+  \rlap{\textpdfrender{TextRenderingMode=Clip}{#1}}%
+  \rlap{\begin{tikzpicture}[baseline=0pt]
+    \shade[left color=mvpblue,middle color=mvpindigo,right color=mvppink] (0,-\dp0) rectangle (\wd0,\ht0);
+  \end{tikzpicture}}%
+  \pdfrestore
+  \hspace*{\wd0}%
+  \endgroup}
+
+% ---------------------------------------------------------------------------------------------------------------
+% Title data
+\def\mvp@shorttitle{}
+\def\mvp@affiliation{}
+\def\mvp@github{}
+\def\mvp@huggingface{}
+\def\mvp@project{}
+\def\mvp@corrname{}
+\def\mvp@leadname{}
+\def\mvp@leademail{}
+\def\mvp@corremail{}
+\def\mvp@date{\today}
+\def\mvp@abstract{}
+\newif\ifmvp@lead \mvp@leadfalse
+\newif\ifmvp@corr \mvp@corrfalse
+\let\mvp@origtitle\title
+\renewcommand{\title}[1]{\mvp@origtitle{#1}\gdef\thetitle{#1}}
+\newcommand{\shorttitle}[1]{\gdef\mvp@shorttitle{#1}}
+\newcommand{\affiliation}[1]{\gdef\mvp@affiliation{#1}}
+\newcommand{\githuburl}[1]{\gdef\mvp@github{#1}}
+\newcommand{\huggingfaceurl}[1]{\gdef\mvp@huggingface{#1}}
+\newcommand{\projecturl}[1]{\gdef\mvp@project{#1}}
+\newcommand{\projectleader}[2]{\gdef\mvp@leadname{#1}\gdef\mvp@leademail{#2}} % name, email (may be empty)
+% Affiliation index after an author name or before an affiliation: \affilmark{1}.
+\newcommand{\affilmark}[1]{\textsuperscript{\textcolor{mvpmuted}{#1}}}
+\newcommand{\correspondence}[2]{\gdef\mvp@corrname{#1}\gdef\mvp@corremail{#2}}
+\newcommand{\mvpdate}[1]{\gdef\mvp@date{#1}}
+
+% Author marks: project leader (dagger) and corresponding author (envelope); \maketitle explains the marks used.
+\newcommand{\projectlead}{\global\mvp@leadtrue\textsuperscript{\textcolor{mvpblue}{\dag}}}
+\newcommand{\corresponding}{\global\mvp@corrtrue\textsuperscript{\textcolor{mvppink}{\scriptsize\faEnvelope[regular]}}}
+
+% The abstract is collected and typeset by \maketitle inside the title box.
+\RenewEnviron{abstract}{\global\let\mvp@abstract\BODY}
+
+% Logos and link lines
+\newcommand{\mvpassetdir}{template/} % folder of the logo files
+\newcommand{\mvplogo}[1][2.2em]{\raisebox{-0.28\height}{\includegraphics[height=#1]{\mvpassetdir mvplab_logo.png}}}
+\newcommand{\githublogo}{\raisebox{-0.1em}{\textcolor{mvpink}{\faGithub}}}
+\newcommand{\huggingfacelogo}{\raisebox{-0.18em}{\includegraphics[height=1.05em]{\mvpassetdir huggingface_logo.pdf}}}
+\newcommand{\projectlogo}{\raisebox{-0.05em}{\textcolor{mvpblue}{\faGlobe}}}
+% Link text set as ordinary text in the surrounding font (url would set it in math mode, without the font's
+% kerning, so it would look different from the text around it).
+\newcommand{\mvp@plain}[1]{\expandafter\detokenize\expandafter{#1}}
+\newcommand{\mvp@link}[1]{\href{#1}{\mvp@plain{#1}}}
+\newcommand{\mvp@meta}[2]{\textbf{\color{mvpink}#1}\hspace{0.4em}#2\par\vspace{4pt}}
+
+% ---------------------------------------------------------------------------------------------------------------
+% Title page
+% Between authors: a fixed gap where the line may break; write names with ~ so they never break.
+\renewcommand{\and}{\unskip\hspace{1.1em plus 0.3em}\allowbreak\ignorespaces}
+\renewcommand{\maketitle}{%
+  \thispagestyle{mvpfirst}%
+  \begingroup\sffamily
+  % Logo row
+  {\mvplogo[2.4em]\hspace{0.45em}{\fontsize{15}{18}\selectfont\bfseries\mvpgradienttext{MVP Lab}}\par}
+  \vspace{18pt}
+  % Title and gradient rule
+  {\raggedright\fontsize{17}{21}\selectfont\bfseries\color{mvpink}\@title\par}
+  \vspace{9pt}
+  \mvp@gradientbar{\linewidth}{2.2pt}\par
+  \vspace{10pt}
+  % Authors, affiliation, and the meaning of the marks
+  {\raggedright\fontsize{10.5}{13}\selectfont\color{mvpink}\@author\par}
+  \ifx\mvp@affiliation\@empty\else
+    \vspace{4pt}{\normalsize\color{mvpmuted}\mvp@affiliation\par}\fi
+  \vspace{14pt}
+  \endgroup
+  % Abstract box with date, links, and correspondence
+  \begin{tcolorbox}[enhanced,arc=6pt,boxrule=0pt,frame hidden,
+      colback=mvpbg,borderline west={2.5pt}{0pt}{mvpblue},
+      left=14pt,right=14pt,top=10pt,bottom=10pt]
+    {\sffamily\bfseries\large\color{mvpblue}Abstract\par}\vspace{4pt}
+    {\small\mvp@abstract\par}
+    \vspace{8pt}{\color{mvpbg2}\hrule height 0.8pt}\vspace{7pt}
+    \begin{minipage}[b]{0.84\linewidth}\sffamily\small
+      \mvp@meta{Date:}{\mvp@date}%
+      \ifx\mvp@project\@empty\else\mvp@meta{\projectlogo\ Project page:}{\mvp@link{\mvp@project}}\fi
+      \ifx\mvp@github\@empty\else\mvp@meta{\githublogo\ Code:}{\mvp@link{\mvp@github}}\fi
+      \ifx\mvp@huggingface\@empty\else\mvp@meta{\huggingfacelogo\ Data:}{\mvp@link{\mvp@huggingface}}\fi
+      \ifx\mvp@leadname\@empty\else\mvp@meta{\makebox[1em][c]{\textcolor{mvpblue}{\dag}}\ Project leader:}{\mvp@leadname\ifx\mvp@leademail\@empty\else\ (\href{mailto:\mvp@leademail}{\mvp@plain{\mvp@leademail}})\fi}\fi
+      \ifx\mvp@corrname\@empty\else\mvp@meta{\textcolor{mvppink}{\faEnvelope[regular]}\ Correspondence:}{\mvp@corrname\ifx\mvp@corremail\@empty\else\ (\href{mailto:\mvp@corremail}{\mvp@plain{\mvp@corremail}})\fi}\fi
+    \end{minipage}\hfill
+    \begin{minipage}[b]{0.14\linewidth}\raggedleft\mvplogo[3.2em]\end{minipage}
+  \end{tcolorbox}
+  \vspace{6pt}}
+
+% ---------------------------------------------------------------------------------------------------------------
+% Running header (title) and footer (page number); the first page has no header.
+\fancypagestyle{mvpfirst}{%
+  \fancyhf{}%
+  \fancyfoot[C]{\sffamily\small\color{mvpmuted}\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\headrule}{}}
+\fancypagestyle{mvp}{%
+  \fancyhf{}%
+  \fancyhead[L]{\sffamily\small\color{mvpmuted}\ifx\mvp@shorttitle\@empty\thetitle\else\mvp@shorttitle\fi}%
+  \fancyhead[R]{\raisebox{-0.2em}{\includegraphics[height=1.1em]{\mvpassetdir mvplab_logo.png}}}%
+  \fancyfoot[C]{\sffamily\small\color{mvpmuted}\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\headrule}{\vspace{-4pt}\mvp@gradientbar{\headwidth}{0.6pt}}}
+\pagestyle{mvp}
+
+% ---------------------------------------------------------------------------------------------------------------
+% Section headings: number and title in the primary blue.
+\titleformat{\section}{\sffamily\Large\bfseries\color{mvpblue}}{\textcolor{mvpblue}{\thesection}}{0.6em}{}
+\titleformat{\subsection}{\sffamily\large\bfseries\color{mvpblue}}{\textcolor{mvpblue}{\thesubsection}}{0.6em}{}
+\titleformat{\subsubsection}{\sffamily\normalsize\bfseries\color{mvpblue}}{\textcolor{mvpblue}{\thesubsubsection}}{0.6em}{}
+\titleformat{\paragraph}[runin]{\normalfont\bfseries\color{mvpink}}{}{0pt}{}
+\titlespacing*{\section}{0pt}{14pt plus 3pt minus 2pt}{6pt plus 1pt}
+\titlespacing*{\subsection}{0pt}{10pt plus 2pt minus 2pt}{4pt plus 1pt}
+\titlespacing*{\subsubsection}{0pt}{8pt plus 2pt minus 1pt}{3pt}
+\titlespacing*{\paragraph}{0pt}{4pt plus 1pt}{0.6em}
+
+% Captions: label in the primary color and in Inter, text in the body font.
+\RequirePackage[format=plain,labelformat=simple,labelsep=period,font=small,labelfont={sf,bf,color=mvpblue},
+  compatibility=false]{caption}
+\RequirePackage[font=footnotesize,skip=3pt,subrefformat=parens]{subcaption}
+\captionsetup[table]{position=top}
+
+% Floats
+\renewcommand{\topfraction}{0.9}\renewcommand{\bottomfraction}{0.6}
+\renewcommand{\textfraction}{0.08}\renewcommand{\floatpagefraction}{0.7}
+\renewcommand{\dbltopfraction}{0.9}\renewcommand{\dblfloatpagefraction}{0.7}
+\setcounter{topnumber}{3}\setcounter{totalnumber}{4}
+
+% Bibliography heading
+\renewcommand{\bibsection}{\section*{References}}
+
+% Abbreviations followed by a period unless one follows already (as in the CVPR template).
+\DeclareRobustCommand\onedot{\futurelet\@let@token\@onedot}
+\def\@onedot{\ifx\@let@token.\else.\null\fi\xspace}
+\def\eg{\emph{e.g}\onedot} \def\Eg{\emph{E.g}\onedot}
+\def\ie{\emph{i.e}\onedot} \def\Ie{\emph{I.e}\onedot}
+\def\cf{\emph{cf}\onedot} \def\Cf{\emph{Cf}\onedot}
+\def\etc{\emph{etc}\onedot} \def\vs{\emph{vs}\onedot}
+\def\wrt{w.r.t\onedot} \def\dof{d.o.f\onedot}
+\def\iid{i.i.d\onedot} \def\wolog{w.l.o.g\onedot}
+\def\etal{\emph{et al}\onedot}
+
+% Boxed text in the colors of the template, \eg a prompt, a listing, or a key finding:
+%   \begin{mvpbox} ... \end{mvpbox}                 % rounded box with a blue border
+%   \begin{mvpbox}[title=Key finding] ... \end{mvpbox}  % any tcolorbox option, \eg a title
+%   \begin{mvpprompt} ... \end{mvpprompt}           % the same box in small typewriter text, for prompts
+\newtcolorbox{mvpbox}[1][]{enhanced,arc=3pt,boxrule=0.6pt,colframe=mvpblue!55,colback=mvpbg,
+  coltitle=white,colbacktitle=mvpblue,fonttitle=\sffamily\bfseries\small,
+  left=6pt,right=6pt,top=4pt,bottom=4pt,before skip=6pt,after skip=6pt,#1}
+\newtcolorbox{mvpprompt}[1][]{enhanced,arc=3pt,boxrule=0.6pt,colframe=mvpblue!55,colback=mvpbg,
+  left=6pt,right=6pt,top=4pt,bottom=4pt,before skip=4pt,after skip=6pt,
+  fontupper=\ttfamily\scriptsize\raggedright,
+  before upper={\hyphenpenalty=10000\relax\exhyphenpenalty=10000\relax\frenchspacing},#1}
+
+% Hyperlinks and cross references, loaded last (hyperref is loaded here unless the document loaded it already).
+\AtEndPreamble{%
+  \@ifpackageloaded{hyperref}{}{\usepackage[breaklinks]{hyperref}}%
+  \usepackage[capitalize]{cleveref}%
+  \crefname{section}{Sec.}{Secs.}\Crefname{section}{Section}{Sections}%
+  \crefname{table}{Tab.}{Tabs.}\Crefname{table}{Table}{Tables}%
+  % Citations and references to sections, figures, and tables in the accent pink; web links in the primary blue
+  % and in the surrounding font, as the links of the SpatialArena webpage (.download a: color var(--primary)).
+  \hypersetup{colorlinks=true,linkcolor=mvppink,citecolor=mvppink,urlcolor=mvpblue,filecolor=mvppink}%
+  \urlstyle{same}%
+  % In the text font, url sets the break characters as binary operators, which spaces out hyphens; break at the
+  % other characters only, so a hyphen keeps its normal width.
+  \def\UrlBreaks{\do\.\do\@\do\\\do\/\do\!\do\_\do\|\do\;\do\>\do\]\do\)\do\,\do\?\do\'\do+\do\=\do\#\do\&}%
+  \def\UrlBigBreaks{\do\:}%
+  % In math mode a hyphen is a minus sign with operator spacing; set it as a text hyphen.
+  \def\UrlSpecials{\do\-{\mbox{-}}}}
+
+% Appendix: a heading on a new page without running header; sections are lettered.
+\newcommand{\appendixpage}{%
+  \clearpage
+  \thispagestyle{mvpfirst}% no running header on the first appendix page, as on the title page
+  {\sffamily\fontsize{20}{24}\selectfont\bfseries\color{mvpink}Appendix\par}
+  \vspace{6pt}\mvp@gradientbar{\linewidth}{1.6pt}\par\vspace{10pt}}
+
+\endinput
