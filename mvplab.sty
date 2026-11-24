@@ -20,7 +20,7 @@
 %   \maketitle ...
 %   \appendixpage \appendix ...          % appendix on a new page, lettered sections
 %
-% Required files: <\mvpassetdir>mvplab_logo.png, mvplab_wordmark.pdf, and huggingface_logo.pdf; \mvpassetdir is template/
+% Required files: <\mvpassetdir>mvplab_logo.pdf, mvplab_wordmark.pdf, and huggingface_logo.pdf; \mvpassetdir is template/
 % unless redefined before \begin{document}, e.g. \renewcommand{\mvpassetdir}{mvplab/template/}.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{mvplab}[2026/11/24 MVP Lab report template]
@@ -130,7 +130,7 @@
 
 % Logos and link lines
 \newcommand{\mvpassetdir}{template/} % folder of the logo files
-\newcommand{\mvplogo}[1][2.2em]{\raisebox{-0.28\height}{\includegraphics[height=#1]{\mvpassetdir mvplab_logo.png}}}
+\newcommand{\mvplogo}[1][2.2em]{\raisebox{-0.28\height}{\includegraphics[height=#1]{\mvpassetdir mvplab_logo.pdf}}}
 \newcommand{\githublogo}{\raisebox{-0.1em}{\textcolor{mvpink}{\faGithub}}}
 \newcommand{\huggingfacelogo}{\raisebox{-0.18em}{\includegraphics[height=1.05em]{\mvpassetdir huggingface_logo.pdf}}}
 % "MVP Lab" in the gradient colors, as vector outlines (template/mvplab_wordmark.pdf, made by tools/): glyph outlines
@@ -194,7 +194,7 @@
 \fancypagestyle{mvp}{%
   \fancyhf{}%
   \fancyhead[L]{\sffamily\small\color{mvpmuted}\ifx\mvp@shorttitle\@empty\thetitle\else\mvp@shorttitle\fi}%
-  \fancyhead[R]{\raisebox{-0.2em}{\includegraphics[height=1.1em]{\mvpassetdir mvplab_logo.png}}}%
+  \fancyhead[R]{\raisebox{-0.2em}{\includegraphics[height=1.1em]{\mvpassetdir mvplab_logo.pdf}}}%
   \fancyfoot[C]{\sffamily\small\color{mvpmuted}\thepage}%
   \renewcommand{\headrulewidth}{0pt}%
   \renewcommand{\headrule}{\vspace{-4pt}\mvp@gradientbar{\headwidth}{0.6pt}}}
