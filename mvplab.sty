@@ -20,7 +20,7 @@
 %   \maketitle ...
 %   \appendixpage \appendix ...          % appendix on a new page, lettered sections
 %
-% Required files: <\mvpassetdir>mvplab_logo.png and <\mvpassetdir>huggingface_logo.pdf; \mvpassetdir is template/
+% Required files: <\mvpassetdir>mvplab_logo.png, mvplab_wordmark.pdf, and huggingface_logo.pdf; \mvpassetdir is template/
 % unless redefined before \begin{document}, e.g. \renewcommand{\mvpassetdir}{mvplab/template/}.
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{mvplab}[2026/11/24 MVP Lab report template]
@@ -78,6 +78,8 @@
 % Text filled with a continuous horizontal gradient, as the webpage title (primary -> secondary -> accent). The glyph
 % outlines become the clipping path (PDF text rendering mode 7), and a vector shading is drawn through them, so the
 % text stays sharp at any zoom. Example: \mvpgradienttext{MVP Lab}.
+% Caution: macOS Preview and other viewers built on Apple's PDF engine ignore this clipping and show the shading as a
+% filled rectangle. The title page therefore uses the pre-outlined wordmark \mvpwordmark (below) instead.
 \RequirePackage{pdfrender}
 \newcommand{\mvpgradienttext}[1]{%
   \begingroup
@@ -131,6 +133,10 @@
 \newcommand{\mvplogo}[1][2.2em]{\raisebox{-0.28\height}{\includegraphics[height=#1]{\mvpassetdir mvplab_logo.png}}}
 \newcommand{\githublogo}{\raisebox{-0.1em}{\textcolor{mvpink}{\faGithub}}}
 \newcommand{\huggingfacelogo}{\raisebox{-0.18em}{\includegraphics[height=1.05em]{\mvpassetdir huggingface_logo.pdf}}}
+% "MVP Lab" in the gradient colors, as vector outlines (template/mvplab_wordmark.pdf, made by tools/): glyph outlines
+% as an ordinary clipping path filled with an axial shading, which every PDF viewer renders. Its size is that of
+% Inter bold at 15pt; the depth below the baseline is 0.1518pt.
+\newcommand{\mvpwordmark}{\raisebox{-0.1518pt}{\includegraphics{\mvpassetdir mvplab_wordmark.pdf}}}
 \newcommand{\projectlogo}{\raisebox{-0.05em}{\textcolor{mvpblue}{\faGlobe}}}
 % Link text set as ordinary text in the surrounding font (url would set it in math mode, without the font's
 % kerning, so it would look different from the text around it).
@@ -146,7 +152,7 @@
   \thispagestyle{mvpfirst}%
   \begingroup\sffamily
   % Logo row
-  {\mvplogo[2.4em]\hspace{0.45em}{\fontsize{15}{18}\selectfont\bfseries\mvpgradienttext{MVP Lab}}\par}
+  {\mvplogo[2.4em]\hspace{0.45em}{\fontsize{15}{18}\selectfont\mvpwordmark}\par}
   \vspace{18pt}
   % Title and gradient rule
   {\raggedright\fontsize{17}{21}\selectfont\bfseries\color{mvpink}\@title\par}

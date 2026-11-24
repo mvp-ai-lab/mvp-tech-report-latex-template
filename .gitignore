@@ -10,3 +10,5 @@
 *.synctex.gz
 *.xdv
 .DS_Store
+# Intermediate files of tools/ (see tools/wordmark.tex)
+tools/*.pdf

@@ -92,6 +92,13 @@ caption enumitem natbib cleveref xcolor pgf microtype geometry
 | --- | --- |
 | `mvplab.sty` | the template |
 | `template/mvplab_logo.png` | MVP Lab logo (title page, abstract box, running header) |
+| `template/mvplab_wordmark.pdf` | "MVP Lab" in the gradient colors, as vector outlines (title page) |
 | `template/huggingface_logo.pdf` | Hugging Face logo (data link) |
 | `example.tex`, `example.bib` | example report |
 | `example.pdf` | compiled example |
+| `tools/` | sources of `mvplab_wordmark.pdf` (see `tools/wordmark.tex` to regenerate it) |
+
+The gradient "MVP Lab" on the title page is a pre-made PDF rather than live text: the letter outlines are an
+ordinary clipping path with the gradient drawn through them. Every PDF viewer renders this, including macOS Preview.
+The template also keeps `\mvpgradienttext{...}`, which applies the gradient to any text. Apple's PDF viewers don't
+support it and show a filled rectangle instead, so avoid it in documents that people may open on a Mac.

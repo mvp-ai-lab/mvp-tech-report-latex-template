@@ -1,0 +1,15 @@
+% Black "MVP Lab" in the font and size of the title page, on a page exactly the size of the text box. The wordmark
+% template/mvplab_wordmark.pdf is made from it; run from the repository root:
+%   pdflatex -output-directory=tools tools/wordmark.tex
+%   gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=pdfwrite -dNoOutputFonts -dCompressPages=false \
+%      -sOutputFile=tools/wordmark_outlined.pdf tools/wordmark.pdf
+%   python3 tools/build_wordmark.py tools/wordmark_outlined.pdf template/mvplab_wordmark.pdf
+\documentclass[10pt]{article}
+\usepackage{mvplab}
+\begin{document}
+\setbox2\hbox{\sffamily\fontsize{15}{18}\selectfont\bfseries MVP Lab}
+\pdfpagewidth=\wd2 \pdfpageheight=\dimexpr\ht2+\dp2\relax
+\pdfhorigin=0pt \pdfvorigin=0pt
+\immediate\write16{Wordmark box: width \the\wd2, height \the\ht2, depth \the\dp2}
+\shipout\hbox{\box2}
+\end{document}
